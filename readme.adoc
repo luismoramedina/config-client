@@ -1,7 +1,7 @@
 = Sample script to modify data on config-server
 
 == Run
-
+----
 ./config.groovy set app.timeout.minutes=1
     -c https://config-service-admin-devstack-platform-dev.appls.boae.paas.gsnetcloud.corp:443
     -u admin:admin
@@ -9,3 +9,4 @@
     -l master
     -p default
     -i
+----
