@@ -2,7 +2,7 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
-def cli = new CliBuilder(usage: 'config <get|set> prop=value', stopAtNonOption: false)
+def cli = new CliBuilder(usage: 'config <get|set|del> prop=value', stopAtNonOption: false)
 
 cli.h(longOpt: 'help', 'Show usage information')
 cli.c(longOpt: 'config-server', args:1, argName: 'server', 'Config server url')
@@ -42,12 +42,16 @@ if (subCommand == 'get') {
         prop = options.arguments()[1]
     }
 
-    get(url, authString, prop)
+    response = get(url, authString, prop)
 
-} else if (subCommand == 'set') {
+    if (prop) {
+        println response.properties.get(prop)
+    } else {
+        response.properties.each{ k, v -> println "${k}=${v}" }
+    }
 
-    def toChange = options.arguments()[1].split('=')[0]
-    def newValue = options.arguments()[1].split('=')[1]
+
+} else if (subCommand == 'set' || subCommand == 'del') {
 
     Object response = get(url, authString)
 
@@ -57,12 +61,22 @@ if (subCommand == 'get') {
     ]
 
     postObject.properties = response.properties
-    if (forceNumeric) {
-        newValue = new Integer(newValue)
-    } else if (forceBool) {
-        newValue = new Boolean(newValue)
+
+    if (subCommand == 'set') {
+        def toChange = options.arguments()[1].split('=')[0]
+        def newValue = options.arguments()[1].split('=')[1]
+
+        if (forceNumeric) {
+            newValue = new Integer(newValue)
+        } else if (forceBool) {
+            newValue = new Boolean(newValue)
+        }
+
+        postObject.properties.put(toChange, newValue)
+    } else {
+        def toRemove = options.arguments()[1]
+        postObject.properties.remove(toRemove)
     }
-    postObject.properties.put(toChange, newValue)
 
     def postUrl =  "${server}/admin/config/${app}/document"
 
@@ -71,32 +85,22 @@ if (subCommand == 'get') {
     connection.setRequestMethod("PUT")
     connection.setRequestProperty("Authorization",  "Basic " + authString)
     connection.setRequestProperty("Content-Type", "application/json")
-    connection.setRequestProperty("Accept", "application/json")
-    connection.setDoInput(true)
 
     OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream())
     wr.write(JsonOutput.toJson(postObject))
     wr.flush()
 
-    postResponse = connection.inputStream.withReader { Reader reader -> reader.text }
     if (connection.responseCode != 204) {
         println "Error putting data"
         return
     }
 
-    println "Data changed"
+    println "Ok!"
 }
 
-private Object get(url, authString, prop) {
+private Object get(url, authString, prop=null) {
     def getResponse = new URL(url).getText(requestProperties: [Authorization: "Basic " + authString])
 
     def jsonSlurper = new JsonSlurper()
-    def response = jsonSlurper.parseText(getResponse)
-
-    if (prop) {
-        response.properties.get(prop)
-    } else {
-        response.properties.each{ k, v -> println "${k}=${v}" }
-    }
-    response
+    jsonSlurper.parseText(getResponse)
 }
