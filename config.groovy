@@ -44,7 +44,7 @@ if (subCommand == 'get') {
         prop = options.arguments()[1]
     }
 
-    response = get(url, authString, prop)
+    response = get(url, authString)
 
     if (prop) {
         println response.properties.get(prop)
@@ -100,7 +100,7 @@ if (subCommand == 'get') {
     println "Ok!"
 }
 
-private Object get(url, authString, prop=null) {
+private Object get(url, authString) {
     def getResponse = new URL(url).getText(requestProperties: [Authorization: "Basic " + authString])
 
     def jsonSlurper = new JsonSlurper()
