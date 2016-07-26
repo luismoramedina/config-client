@@ -1,12 +1,48 @@
 = Sample script to modify data on config-server
 
 == Run
+
+=== Get all properties
+
 ----
-./config.groovy set app.timeout.minutes=1
-    -c https://config-service-admin-devstack-platform-dev.appls.boae.paas.gsnetcloud.corp:443
-    -u admin:admin
-    -a sample
+./config.groovy get
+    -c https://config-server
+    -u user:pass
+    -a myapp
     -l master
     -p default
-    -i
+----
+
+=== Get value of a single property
+
+----
+./config.groovy get app.timeout.minutes
+    -c https://config-server
+    -u user:pass
+    -a myapp
+    -l master
+    -p default
+----
+
+=== Modify/add a property
+
+----
+./config.groovy set app.timeout.minutes=1
+    -c https://config-server
+    -u user:pass
+    -a myapp
+    -l master
+    -p default
+    -n
+----
+
+=== Delete a property
+
+----
+./config.groovy del app.timeout.minutes
+    -c https://config-server
+    -u user:pass
+    -a myapp
+    -l master
+    -p default
 ----

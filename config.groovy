@@ -2,7 +2,9 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
-def cli = new CliBuilder(usage: 'config <get|set|del> prop=value', stopAtNonOption: false)
+def cli = new CliBuilder(
+        usage: 'config <get|del|set> [prop|prop=value]',
+        stopAtNonOption: false)
 
 cli.h(longOpt: 'help', 'Show usage information')
 cli.c(longOpt: 'config-server', args:1, argName: 'server', 'Config server url')
