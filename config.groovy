@@ -3,7 +3,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
 def cli = new CliBuilder(
-        usage: 'config <get|del|set> [prop|prop=value]',
+        usage: 'config <get|del|set|new> [prop|prop=value]',
         stopAtNonOption: false)
 
 cli.h(longOpt: 'help', 'Show usage information')
@@ -53,6 +53,43 @@ if (subCommand == 'get') {
     }
 
 
+} else if (subCommand == 'newapp') {
+    def postUrl =  "${server}/admin/config/${app}"
+
+    HttpURLConnection connection = getConnection(postUrl, authString, "POST")
+
+    if (connection.responseCode == 409) {
+        println "${app} already created"
+    } else if (connection.responseCode != 201) {
+        System.err << "Error putting data: " + connection.responseMessage
+        return
+    }
+
+
+    postUrl += "/document"
+
+    def postObject = [
+            "label": "${label}",
+            "profile": "${profile}",
+            "properties": {}
+    ]
+
+    connection = getConnection(postUrl, authString, "POST")
+    connection.setDoOutput(true)
+
+    OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream())
+    wr.write(JsonOutput.toJson(postObject))
+    wr.flush()
+    wr.close()
+
+    if (connection.responseCode == 409) {
+        println "${app}/${profile}/${label} already created"
+    } else if (connection.responseCode != 201) {
+        System.err << "Error putting data: " + connection.responseMessage
+        return
+    }
+
+    println "Ok!"
 } else if (subCommand == 'set' || subCommand == 'del') {
 
     Object response = get(url, authString)
@@ -82,22 +119,28 @@ if (subCommand == 'get') {
 
     def postUrl =  "${server}/admin/config/${app}/document"
 
-    HttpURLConnection connection = new URL(postUrl).openConnection()
+    HttpURLConnection connection = getConnection(postUrl, authString, "PUT")
     connection.setDoOutput(true)
-    connection.setRequestMethod("PUT")
-    connection.setRequestProperty("Authorization",  "Basic " + authString)
-    connection.setRequestProperty("Content-Type", "application/json")
 
     OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream())
     wr.write(JsonOutput.toJson(postObject))
     wr.flush()
+    wr.close()
 
     if (connection.responseCode != 204) {
-        println "Error putting data"
+        System.err << "Error putting data: " + connection.responseMessage
         return
     }
 
     println "Ok!"
+}
+
+private HttpURLConnection getConnection(GString postUrl, authString, String method) {
+    HttpURLConnection connection = new URL(postUrl).openConnection()
+    connection.setRequestMethod(method)
+    connection.setRequestProperty("Authorization", "Basic " + authString)
+    connection.setRequestProperty("Content-Type", "application/json")
+    connection
 }
 
 private Object get(url, authString) {
