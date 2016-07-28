@@ -3,7 +3,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
 def cli = new CliBuilder(
-        usage: 'config <get|del|set|new> [prop|prop=value]',
+        usage: 'config <get|del|set|new> [prop|prop=value] [options]',
         stopAtNonOption: false)
 
 cli.h(longOpt: 'help', 'Show usage information')
@@ -12,6 +12,7 @@ cli.u(longOpt: 'credentials', args:1, argName: 'user:pass', 'Basic auth credenti
 cli.a(longOpt: 'app', args:1, argName: 'app', 'Application name')
 cli.p(longOpt: 'profile', args:1, argName: 'profile', 'Profile')
 cli.l(longOpt: 'label', args:1, argName: 'label', 'Label')
+cli.f(longOpt: 'file', args:1, argName: 'file', 'Properties file path')
 
 cli.n('Force numeric on property set')
 cli.b('Force boolean on property set')
@@ -30,6 +31,7 @@ forceBool = options.b
 app = options.a
 def label = options.l
 def profile = options.p
+def filePath = options.f
 
 def subCommand = options.arguments()[0]
 
@@ -102,16 +104,24 @@ if (subCommand == 'get') {
     postObject.properties = response.properties
 
     if (subCommand == 'set') {
-        def toChange = options.arguments()[1].split('=')[0]
-        def newValue = options.arguments()[1].split('=')[1]
+        if (filePath) {
+            def fileProps = new Properties()
+            fileProps.load(new FileInputStream(filePath))
+            postObject.properties.putAll(fileProps)
+        } else {
+            def toChange = options.arguments()[1].split('=')[0]
+            def newValue = options.arguments()[1].split('=')[1]
 
-        if (forceNumeric) {
-            newValue = new Integer(newValue)
-        } else if (forceBool) {
-            newValue = new Boolean(newValue)
+            if (forceNumeric) {
+                newValue = new Integer(newValue)
+            } else if (forceBool) {
+                newValue = new Boolean(newValue)
+            }
+
+            postObject.properties.put(toChange, newValue)
         }
 
-        postObject.properties.put(toChange, newValue)
+
     } else {
         def toRemove = options.arguments()[1]
         postObject.properties.remove(toRemove)
