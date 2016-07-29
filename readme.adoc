@@ -36,6 +36,18 @@
     -n
 ----
 
+=== Import/set properties in property file
+
+----
+./config.groovy set
+    -f /home/user/application.properties
+    -c https://config-server
+    -u user:pass
+    -a myapp
+    -l master
+    -p default
+----
+
 === Delete a property
 
 ----
