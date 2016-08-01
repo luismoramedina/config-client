@@ -110,7 +110,7 @@ if (subCommand == 'get') {
             postObject.properties.putAll(fileProps)
         } else {
             def toChange = options.arguments()[1].split('=')[0]
-            def newValue = options.arguments()[1].split('=')[1]
+            def newValue = options.arguments()[1].split('=', 2)[1]
 
             if (forceNumeric) {
                 newValue = new Integer(newValue)
