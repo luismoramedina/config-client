@@ -2,6 +2,8 @@
 
 == Run
 
+NOTE: groovy sdk is needed to run this command, check http://www.groovy-lang.org/download.html
+
 === Get all properties
 
 ----
