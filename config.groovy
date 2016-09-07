@@ -3,7 +3,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
 def cli = new CliBuilder(
-        usage: 'config <get|del|set|new> [prop|prop=value] [options]',
+        usage: 'config <get|del|set|new|list> [prop|prop=value] [options]',
         stopAtNonOption: false)
 
 cli.h(longOpt: 'help', 'Show usage information')
@@ -92,6 +92,15 @@ if (subCommand == 'get') {
     }
 
     println "Ok!"
+
+} else if (subCommand == 'list') {
+
+    def response = get("${server}/admin/config/list", authString)
+
+    response.each() {
+        println "${it}"
+    }
+
 } else if (subCommand == 'set' || subCommand == 'del') {
 
     Object response = get(url, authString)
