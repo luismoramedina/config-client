@@ -37,6 +37,8 @@ def subCommand = options.arguments()[0]
 
 def url = "${server}/admin/config/${app}/document/${profile}/${label}"
 
+println url
+
 def authString = credentials.getBytes().encodeBase64().toString()
 
 if (subCommand == 'get') {
@@ -152,6 +154,8 @@ if (subCommand == 'get') {
     }
 
     println "Ok!"
+} else {
+    println "Command not found!"
 }
 
 private HttpURLConnection getConnection(GString postUrl, authString, String method) {
